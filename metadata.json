@@ -1,0 +1,6 @@
+{
+  "name": "ExamPro SMK Prima Unggul",
+  "description": "Sistem ujian online terpadu untuk siswa dan staf SMK Prima Unggul dengan integrasi Supabase.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
