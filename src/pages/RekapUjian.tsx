@@ -34,8 +34,12 @@ export default function RekapUjian({ profile }: RekapUjianProps) {
     try {
       const { data, error } = await supabase
         .from('exam_results')
-        .select('*')
-        .eq('user_role', filter === 'siswa' ? 'siswa' : 'karyawan') // This is a simplified check
+        .select(`
+          *,
+          exam:exams(*),
+          profile:profiles(*)
+        `)
+        .eq('user_role', filter === 'siswa' ? 'siswa' : 'karyawan')
         .order('completed_at', { ascending: false });
       
       if (error) throw error;
@@ -169,11 +173,14 @@ export default function RekapUjian({ profile }: RekapUjianProps) {
                                <div className="w-10 h-10 bg-zinc-100 rounded-xl flex items-center justify-center text-zinc-500 font-bold group-hover:bg-primary group-hover:text-zinc-950 transition-all">
                                   <User className="w-5 h-5" />
                                </div>
-                               <span className="font-black text-zinc-950">{res.user_id}</span>
+                               <div>
+                                  <p className="font-black text-zinc-950 leading-none mb-1">{res.profile?.full_name || 'User Terhapus'}</p>
+                                  <p className="text-[10px] text-zinc-400 font-black uppercase tracking-widest">{res.profile?.nisn || res.profile?.role}</p>
+                               </div>
                             </div>
                          </td>
                          <td className="px-8 py-5">
-                            <p className="font-bold text-zinc-800 text-sm">Pemrograman Web XII</p>
+                            <p className="font-bold text-zinc-800 text-sm">{res.exam?.title || 'Ujian Terhapus'}</p>
                          </td>
                          <td className="px-8 py-5">
                             <div className="flex items-center gap-2 text-zinc-500">
@@ -184,17 +191,17 @@ export default function RekapUjian({ profile }: RekapUjianProps) {
                          <td className="px-8 py-5 text-center">
                             <span className={cn(
                                "text-xl font-black",
-                               res.score >= 75 ? 'text-emerald-500' : 'text-red-500'
+                               res.score >= (res.exam?.kkm || 50) ? 'text-emerald-500' : 'text-red-500'
                             )}>
-                               {res.score}
+                               {Math.round(res.score)}
                             </span>
                          </td>
                          <td className="px-8 py-5 text-right">
                             <span className={cn(
                                "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest",
-                               res.score >= 75 ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
+                               res.score >= (res.exam?.kkm || 50) ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
                             )}>
-                               {res.score >= 75 ? 'Lulus' : 'Remedial'}
+                               {res.score >= (res.exam?.kkm || 50) ? 'Lulus' : 'Remedial'}
                             </span>
                          </td>
                       </tr>

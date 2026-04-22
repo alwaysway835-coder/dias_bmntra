@@ -32,7 +32,7 @@ export default function DashboardLayout({ profile }: DashboardLayoutProps) {
       label: 'Dashboard', 
       path: '/app', 
       icon: LayoutDashboard,
-      roles: ['admin', 'guru', 'tenaga_kependidikan']
+      roles: ['admin', 'guru', 'tenaga_kependidikan', 'siswa']
     },
     { 
       label: 'Ujian Karyawan', 
@@ -44,7 +44,7 @@ export default function DashboardLayout({ profile }: DashboardLayoutProps) {
       label: 'Ujian Siswa', 
       path: '/app/ujian-siswa', 
       icon: GraduationCap,
-      roles: ['admin', 'guru']
+      roles: ['admin', 'guru', 'siswa']
     },
     { 
       label: 'Data Siswa', 

@@ -18,6 +18,7 @@ import ExamSiswa from './pages/ExamSiswa';
 import RekapUjian from './pages/RekapUjian';
 import DataSiswa from './pages/DataSiswa';
 import UserManagement from './pages/UserManagement';
+import TakeExam from './pages/TakeExam';
 
 export default function App() {
   const [session, setSession] = useState<any>(null);
@@ -81,6 +82,7 @@ export default function App() {
           <Route path="rekap-ujian" element={<RekapUjian profile={profile} />} />
           <Route path="data-siswa" element={<DataSiswa profile={profile} />} />
           <Route path="user-management" element={<UserManagement profile={profile} />} />
+          <Route path="ujian/:examId" element={<TakeExam profile={profile} />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" />} />

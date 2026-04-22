@@ -12,10 +12,12 @@ import {
   Edit2, 
   FileText,
   ChevronRight,
-  Filter
+  Filter,
+  Play
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
+import { Link } from 'react-router-dom';
 
 interface ExamSiswaProps {
   profile: UserProfile | null;
@@ -135,10 +137,20 @@ export default function ExamSiswa({ profile }: ExamSiswaProps) {
                         </div>
                         
                         <div className="pt-4">
-                           <button className="flex items-center gap-2 text-primary font-black text-xs uppercase tracking-widest hover:gap-3 transition-all group/btn">
-                              Kelola Bank Soal 
-                              <ChevronRight className="w-4 h-4" />
-                           </button>
+                           {profile?.role === 'siswa' ? (
+                              <Link 
+                                to={`/app/ujian/${exam.id}`}
+                                className="bg-zinc-950 text-white px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-zinc-800 transition-all w-full md:w-auto"
+                              >
+                                 <Play className="w-4 h-4 text-primary" />
+                                 Mulai Ujian Sekarang
+                              </Link>
+                           ) : (
+                              <button className="flex items-center gap-2 text-primary font-black text-xs uppercase tracking-widest hover:gap-3 transition-all group/btn">
+                                 Kelola Bank Soal 
+                                 <ChevronRight className="w-4 h-4" />
+                              </button>
+                           )}
                         </div>
                      </div>
                   </div>

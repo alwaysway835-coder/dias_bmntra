@@ -7,7 +7,8 @@ import {
   TrendingUp, 
   Calendar,
   Clock,
-  ChevronRight
+  ChevronRight,
+  Trophy
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -16,7 +17,14 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ profile }: DashboardProps) {
-  const stats = [
+  const isSiswa = profile?.role === 'siswa';
+
+  const stats = isSiswa ? [
+    { label: 'Ujian Tersedia', value: '5', icon: BookOpen, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Ujian Selesai', value: '8', icon: FileCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Rata-rata Nilai', value: '78.2', icon: TrendingUp, color: 'text-orange-600', bg: 'bg-orange-50' },
+    { label: 'Peringkat Kelas', value: '12', icon: Trophy, color: 'text-purple-600', bg: 'bg-purple-50' },
+  ] : [
     { label: 'Ujian Aktif', value: '12', icon: BookOpen, color: 'text-blue-600', bg: 'bg-blue-50' },
     { label: 'Total Siswa', value: '840', icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50' },
     { label: 'Ujian Selesai', value: '3,240', icon: FileCheck, color: 'text-purple-600', bg: 'bg-purple-50' },
@@ -24,7 +32,7 @@ export default function Dashboard({ profile }: DashboardProps) {
   ];
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 font-sans">
       {/* Welcome Section */}
       <section className="flex flex-col md:flex-row justify-between items-end gap-6 bg-zinc-950 p-10 rounded-[2.5rem] relative overflow-hidden text-white">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[80px] rounded-full translate-x-1/2 -translate-y-1/2" />
@@ -35,10 +43,12 @@ export default function Dashboard({ profile }: DashboardProps) {
             animate={{ opacity: 1, y: 0 }}
             className="text-4xl font-black mb-2 tracking-tight"
           >
-            Halo, {profile?.full_name?.split(' ')[0] || 'User'}! 👋
+            {isSiswa ? `Apa kabar, ${profile?.full_name?.split(' ')[0]}?` : `Halo, ${profile?.full_name?.split(' ')[0] || 'User'}! 👋`}
           </motion.h1>
           <p className="text-zinc-400 font-medium text-lg">
-            Selamat datang kembali di pusat kendali akademik SMK Prima Unggul.
+            {isSiswa 
+              ? `Jurusan: ${profile?.jurusan || '-'} • Siapkan diri Anda untuk ujian hari ini.`
+              : 'Selamat datang kembali di pusat kendali akademik SMK Prima Unggul.'}
           </p>
         </div>
 
@@ -87,8 +97,8 @@ export default function Dashboard({ profile }: DashboardProps) {
         <section className="lg:col-span-2 space-y-6">
           <div className="flex justify-between items-center px-4">
             <h3 className="text-xl font-black text-zinc-950 flex items-center gap-2">
-               Ujian Mendatang
-               <span className="bg-primary/20 text-primary-dark text-xs px-2 py-1 rounded-full font-black uppercase">Segera</span>
+               {isSiswa ? 'Jadwal Ujian Saya' : 'Ujian Terjadwal'}
+               <span className="bg-primary/20 text-primary-dark text-xs px-2 py-1 rounded-full font-black uppercase">Live</span>
             </h3>
             <button className="text-sm font-bold text-zinc-500 hover:text-zinc-950 transition-colors flex items-center gap-1 group">
               Lihat Semua
@@ -130,15 +140,19 @@ export default function Dashboard({ profile }: DashboardProps) {
           <div className="bg-emerald-50 border border-emerald-100 p-8 rounded-[2.5rem]">
             <h4 className="text-lg font-black text-emerald-950 mb-4 flex items-center gap-2">
               <ShieldCheck className="w-5 h-5" />
-              Info Sistem
+              {isSiswa ? 'Panduan Ujian' : 'Info Sistem'}
             </h4>
             <div className="space-y-4 text-emerald-800 text-sm font-medium leading-relaxed">
-              <p>Sistem ujian sedang dalam performa optimal. Pastikan koneksi internet stabil selama pelaksanaan ujian berlangsung.</p>
+              <p>
+                {isSiswa 
+                  ? 'Gunakan perangkat yang stabil. Jangan menutup tab ujian sebelum selesai menekan tombol kirim.' 
+                  : 'Sistem ujian sedang dalam performa optimal. Pastikan sinkronisasi database tetap terjaga.'}
+              </p>
               <div className="bg-white/50 p-4 rounded-xl border border-emerald-200">
-                <p className="text-xs font-black uppercase tracking-widest text-emerald-600 mb-1">Status Database</p>
+                <p className="text-xs font-black uppercase tracking-widest text-emerald-600 mb-1">Standard Kelulusan</p>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                  <span className="font-bold">Terhubung ke Supabase</span>
+                  <span className="font-bold font-mono">KKM Minimum: 50.00</span>
                 </div>
               </div>
             </div>

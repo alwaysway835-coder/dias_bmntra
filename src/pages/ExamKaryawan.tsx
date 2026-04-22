@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
+import { Link } from 'react-router-dom';
 
 interface ExamKaryawanProps {
   profile: UserProfile | null;
@@ -118,13 +119,16 @@ export default function ExamKaryawan({ profile }: ExamKaryawanProps) {
                       </div>
                       <div className="flex items-center gap-2">
                          <Trophy className="w-4 h-4 text-zinc-400" />
-                         <span className="text-xs font-bold text-zinc-600">KKM: 75</span>
+                         <span className="text-xs font-bold text-zinc-600">KKM: 50</span>
                       </div>
                    </div>
-                   <button className="w-full bg-zinc-950 text-white p-4 rounded-2xl font-black text-sm flex items-center justify-center gap-3 hover:bg-zinc-800 transition-colors">
+                   <Link 
+                     to={`/app/ujian/${exam.id}`}
+                     className="w-full bg-zinc-950 text-white p-4 rounded-2xl font-black text-sm flex items-center justify-center gap-3 hover:bg-zinc-800 transition-colors"
+                   >
                       <Play className="w-5 h-5 text-primary" />
                       MULAI UJIAN
-                   </button>
+                   </Link>
                 </div>
               </motion.div>
             ))

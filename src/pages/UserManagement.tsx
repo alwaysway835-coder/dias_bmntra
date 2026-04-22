@@ -35,7 +35,9 @@ export default function UserManagement({ profile }: UserManagementProps) {
     email: '',
     password: '',
     full_name: '',
-    role: 'tenaga_kependidikan' as UserRole
+    role: 'tenaga_kependidikan' as UserRole,
+    nisn: '',
+    jurusan: ''
   });
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -66,42 +68,48 @@ export default function UserManagement({ profile }: UserManagementProps) {
     setFormLoading(true);
     setFormError(null);
 
+    const userEmail = formData.role === 'siswa' ? `${formData.nisn}@siswa.local` : formData.email;
+
     try {
-      // 1. Create Auth User (Note: In production this should be handled by a secure Edge Function)
+      // 1. Create Auth User
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
+        email: userEmail,
         password: formData.password,
         options: {
           data: {
             full_name: formData.full_name,
+            role: formData.role,
+            nisn: formData.role === 'siswa' ? formData.nisn : undefined
           }
         }
       });
 
       if (authError) throw authError;
 
-      // 2. The profile is usually created by a trigger in Supabase, 
-      // but let's update the role manually if needed or if trigger isn't set.
       if (authData.user) {
         const { error: profileError } = await supabase
           .from('profiles')
-          .update({ role: formData.role })
+          .update({ 
+            role: formData.role,
+            nisn: formData.role === 'siswa' ? formData.nisn : null,
+            jurusan: formData.role === 'siswa' ? formData.jurusan : null
+          })
           .eq('id', authData.user.id);
         
         if (profileError) {
-          // If update fails, maybe trigger hasn't finished yet or record doesn't exist
-          // Let's try to upsert as fallback
           await supabase.from('profiles').upsert({
             id: authData.user.id,
-            email: formData.email,
+            email: userEmail,
             full_name: formData.full_name,
-            role: formData.role
+            role: formData.role,
+            nisn: formData.role === 'siswa' ? formData.nisn : null,
+            jurusan: formData.role === 'siswa' ? formData.jurusan : null
           });
         }
       }
 
       setIsModalOpen(false);
-      setFormData({ email: '', password: '', full_name: '', role: 'tenaga_kependidikan' });
+      setFormData({ email: '', password: '', full_name: '', role: 'tenaga_kependidikan', nisn: '', jurusan: '' });
       fetchUsers();
     } catch (error: any) {
       setFormError(error.message);
@@ -198,7 +206,12 @@ export default function UserManagement({ profile }: UserManagementProps) {
                          </div>
                          <div>
                             <p className="font-black text-zinc-950 leading-tight">{u.full_name}</p>
-                            <p className="text-xs text-zinc-500 font-medium">{u.email}</p>
+                            <div className="flex items-center gap-2">
+                               <p className="text-xs text-zinc-500 font-medium">{u.email}</p>
+                               {u.jurusan && (
+                                 <span className="text-[10px] bg-zinc-200 text-zinc-600 px-1.5 py-0.5 rounded font-black uppercase tracking-widest">{u.jurusan}</span>
+                               )}
+                            </div>
                          </div>
                       </div>
                     </td>
@@ -287,21 +300,23 @@ export default function UserManagement({ profile }: UserManagementProps) {
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Email</label>
-                      <div className="relative group">
-                         <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-focus-within:text-primary transition-colors" />
-                         <input 
-                            type="email" 
-                            required
-                            value={formData.email}
-                            onChange={e => setFormData({ ...formData, email: e.target.value })}
-                            placeholder="user@exam.com"
-                            className="w-full bg-zinc-50 border border-zinc-200 pl-11 pr-4 py-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
-                          />
+                    {formData.role !== 'siswa' && (
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Email</label>
+                        <div className="relative group">
+                           <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-focus-within:text-primary transition-colors" />
+                           <input 
+                              type="email" 
+                              required={formData.role !== 'siswa'}
+                              value={formData.email}
+                              onChange={e => setFormData({ ...formData, email: e.target.value })}
+                              placeholder="user@exam.com"
+                              className="w-full bg-zinc-50 border border-zinc-200 pl-11 pr-4 py-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                            />
+                        </div>
                       </div>
-                    </div>
-                    <div className="space-y-1.5">
+                    )}
+                    <div className={cn("space-y-1.5", formData.role === 'siswa' ? "col-span-2" : "")}>
                       <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Role Utama</label>
                       <select 
                         className="w-full bg-zinc-50 border border-zinc-200 p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-bold appearance-none hover:bg-zinc-100/50 cursor-pointer"
@@ -311,9 +326,45 @@ export default function UserManagement({ profile }: UserManagementProps) {
                         <option value="tenaga_kependidikan">Tenaga Kependidikan</option>
                         <option value="guru">Guru Pengajar</option>
                         <option value="admin">Administrator</option>
+                        <option value="siswa">Siswa</option>
                       </select>
                     </div>
                   </div>
+
+                  {formData.role === 'siswa' && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="grid md:grid-cols-2 gap-4"
+                    >
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">NISN (Sebagai Username)</label>
+                        <input 
+                          type="text" 
+                          required
+                          value={formData.nisn}
+                          onChange={e => setFormData({ ...formData, nisn: e.target.value })}
+                          placeholder="Contoh: 12345678"
+                          className="w-full bg-zinc-50 border border-zinc-200 p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-bold tracking-widest"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Jurusan</label>
+                        <select 
+                          required
+                          value={formData.jurusan}
+                          onChange={e => setFormData({ ...formData, jurusan: e.target.value })}
+                          className="w-full bg-zinc-50 border border-zinc-200 p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-bold appearance-none hover:bg-zinc-100/50 cursor-pointer"
+                        >
+                          <option value="">Pilih Jurusan</option>
+                          <option value="TKJ">Teknik Komputer & Jaringan</option>
+                          <option value="AK">Akuntansi</option>
+                          <option value="AP">Administrasi Perkantoran</option>
+                          <option value="PM">Pemasaran</option>
+                        </select>
+                      </div>
+                    </motion.div>
+                  )}
 
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Password Inisial</label>
