@@ -72,6 +72,8 @@ export default function UserManagement({ profile }: UserManagementProps) {
 
     try {
       // 1. Create Auth User
+      // Seluruh data (Full Name, Role, NISN, Jurusan) dikirim via metadata (data) 
+      // agar diolah secara atomik oleh Trigger Database (SQL)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userEmail,
         password: formData.password,
@@ -79,38 +81,20 @@ export default function UserManagement({ profile }: UserManagementProps) {
           data: {
             full_name: formData.full_name,
             role: formData.role,
-            nisn: formData.role === 'siswa' ? formData.nisn : undefined
+            nisn: formData.role === 'siswa' ? formData.nisn : undefined,
+            jurusan: formData.role === 'siswa' ? formData.jurusan : undefined
           }
         }
       });
 
       if (authError) throw authError;
 
-      if (authData.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({ 
-            role: formData.role,
-            nisn: formData.role === 'siswa' ? formData.nisn : null,
-            jurusan: formData.role === 'siswa' ? formData.jurusan : null
-          })
-          .eq('id', authData.user.id);
-        
-        if (profileError) {
-          await supabase.from('profiles').upsert({
-            id: authData.user.id,
-            email: userEmail,
-            full_name: formData.full_name,
-            role: formData.role,
-            nisn: formData.role === 'siswa' ? formData.nisn : null,
-            jurusan: formData.role === 'siswa' ? formData.jurusan : null
-          });
-        }
-      }
-
+      // Berhasil - Kita biarkan trigger database yang mengelola pembuatan profil
       setIsModalOpen(false);
       setFormData({ email: '', password: '', full_name: '', role: 'tenaga_kependidikan', nisn: '', jurusan: '' });
-      fetchUsers();
+      
+      // Tunggu sebentar sebelum refresh agar trigger selesai
+      setTimeout(() => fetchUsers(), 1000);
     } catch (error: any) {
       setFormError(error.message);
     } finally {
